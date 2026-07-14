@@ -26,6 +26,11 @@ public class FileSharer {
         }
     }
 
+    public String getFilePath(int port) {
+        return availableFiles.get(port);
+    }
+
+
     public void startFileServer(int port) {
         String filePath = availableFiles.get(port);
         if (filePath == null) {

@@ -13,7 +13,6 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
 import java.net.InetSocketAddress;
-import java.net.Socket;
 
 import org.apache.commons.io.IOUtils;
 
@@ -222,8 +221,6 @@ public class FileController {
                 
                 int port = fileSharer.offerFile(filePath);
                 
-                new Thread(() -> fileSharer.startFileServer(port)).start();
-                
                 String jsonResponse = "{\"port\": " + port + "}";
                 headers.add("Content-Type", "application/json");
                 exchange.sendResponseHeaders(200, jsonResponse.getBytes().length);
@@ -259,64 +256,54 @@ public class FileController {
             
             String path = exchange.getRequestURI().getPath();
             String portStr = path.substring(path.lastIndexOf('/') + 1);
-            
+
             try {
-                int port = Integer.parseInt(portStr);
-                
-                try (Socket socket = new Socket("localhost", port);
-                     InputStream socketInput = socket.getInputStream()) {
-                    
-                    File tempFile = File.createTempFile("download-", ".tmp");
-                    String filename = "downloaded-file"; // Default filename
-                    
-                    try (FileOutputStream fos = new FileOutputStream(tempFile)) {
-                        byte[] buffer = new byte[4096];
-                        int bytesRead;
-                        
-                        ByteArrayOutputStream headerBaos = new ByteArrayOutputStream();
-                        int b;
-                        while ((b = socketInput.read()) != -1) {
-                            if (b == '\n') break;
-                            headerBaos.write(b);
-                        }
-                        
-                        String header = headerBaos.toString().trim();
-                        if (header.startsWith("Filename: ")) {
-                            filename = header.substring("Filename: ".length());
-                        }
-                        
-                        while ((bytesRead = socketInput.read(buffer)) != -1) {
-                            fos.write(buffer, 0, bytesRead);
-                        }
-                    }
-                    
-                    headers.add("Content-Disposition", "attachment; filename=\"" + filename + "\"");
-                    headers.add("Content-Type", "application/octet-stream");
-                    
-                    exchange.sendResponseHeaders(200, tempFile.length());
-                    try (OutputStream os = exchange.getResponseBody();
-                         FileInputStream fis = new FileInputStream(tempFile)) {
-                        byte[] buffer = new byte[4096];
-                        int bytesRead;
-                        while ((bytesRead = fis.read(buffer)) != -1) {
-                            os.write(buffer, 0, bytesRead);
-                        }
-                    }
-                    
-                    tempFile.delete();
-                    
-                } catch (IOException e) {
-                    System.err.println("Error downloading file from peer: " + e.getMessage());
-                    String response = "Error downloading file: " + e.getMessage();
+                int code = Integer.parseInt(portStr);
+
+                String filePath = fileSharer.getFilePath(code);
+                if (filePath == null) {
+                    String response = "Not Found: No file associated with code " + code;
                     headers.add("Content-Type", "text/plain");
-                    exchange.sendResponseHeaders(500, response.getBytes().length);
+                    exchange.sendResponseHeaders(404, response.getBytes().length);
                     try (OutputStream os = exchange.getResponseBody()) {
                         os.write(response.getBytes());
                     }
+                    return;
                 }
-                
+
+                File file = new File(filePath);
+                if (!file.exists()) {
+                    String response = "Not Found: File no longer available";
+                    headers.add("Content-Type", "text/plain");
+                    exchange.sendResponseHeaders(404, response.getBytes().length);
+                    try (OutputStream os = exchange.getResponseBody()) {
+                        os.write(response.getBytes());
+                    }
+                    return;
+                }
+
+                // Extract original filename (stored as uuid_originalname)
+                String storedName = file.getName();
+                int underscoreIdx = storedName.indexOf('_');
+                String filename = (underscoreIdx != -1 && underscoreIdx < storedName.length() - 1)
+                        ? storedName.substring(underscoreIdx + 1)
+                        : storedName;
+
+                headers.add("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+                headers.add("Content-Type", "application/octet-stream");
+
+                exchange.sendResponseHeaders(200, file.length());
+                try (OutputStream os = exchange.getResponseBody();
+                     FileInputStream fis = new FileInputStream(file)) {
+                    byte[] buffer = new byte[8192];
+                    int bytesRead;
+                    while ((bytesRead = fis.read(buffer)) != -1) {
+                        os.write(buffer, 0, bytesRead);
+                    }
+                }
+
             } catch (NumberFormatException e) {
-                String response = "Bad Request: Invalid port number";
+                String response = "Bad Request: Invalid download code";
                 exchange.sendResponseHeaders(400, response.getBytes().length);
                 try (OutputStream os = exchange.getResponseBody()) {
                     os.write(response.getBytes());
