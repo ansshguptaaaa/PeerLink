@@ -77,7 +77,7 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5" autoComplete="off">
             <div>
               <label htmlFor="login-email" className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
                 Email Address
@@ -88,9 +88,9 @@ export default function LoginPage() {
                 </div>
                 <input
                   id="login-email"
-                  type="email"
+                  type="email" autoComplete="off"
                   required
-                  placeholder="name@example.com"
+                  placeholder=""
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition duration-200 text-sm"
@@ -113,7 +113,7 @@ export default function LoginPage() {
                 </div>
                 <input
                   id="login-password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? 'text' : 'password'} autoComplete="new-password"
                   required
                   placeholder="••••••••"
                   value={password}
@@ -159,3 +159,6 @@ export default function LoginPage() {
     </div>
   );
 }
+
+
+

@@ -42,7 +42,7 @@ export default function FileDownload({ onDownload, isDownloading }: FileDownload
         Enter the invite code (port number) shared with you to connect and download the file.
       </p>
       
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-5" autoComplete="off">
         <div className="text-left">
           <label htmlFor="inviteCode" className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
             Invite Code / Port
@@ -54,9 +54,14 @@ export default function FileDownload({ onDownload, isDownloading }: FileDownload
             <input
               type="text"
               id="inviteCode"
+              name="peerlink_invite_code"
               value={inviteCode}
               onChange={(e) => setInviteCode(e.target.value)}
               placeholder="Enter the invite code (e.g. 9091)"
+              autoComplete="new-password"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck={false}
               className="w-full pl-10 pr-4 py-3 bg-slate-950/60 border border-slate-850 rounded-xl text-white placeholder-slate-650 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition duration-200 text-sm font-semibold"
               disabled={isDownloading}
               required
@@ -98,3 +103,5 @@ export default function FileDownload({ onDownload, isDownloading }: FileDownload
     </div>
   );
 }
+
+

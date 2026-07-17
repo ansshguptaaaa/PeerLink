@@ -69,7 +69,7 @@ public class EmailService {
 
         message.setContent(htmlContent, "text/html; charset=utf-8");
 
-        Transport.send(message);
+        try { Transport.send(message); } catch(Exception e) { e.printStackTrace(); throw e; }
         System.out.println("OTP email sent successfully to: " + toEmail);
     }
 }

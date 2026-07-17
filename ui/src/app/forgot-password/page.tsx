@@ -164,7 +164,7 @@ export default function ForgotPasswordPage() {
                     id="reset-email"
                     type="email"
                     required
-                    placeholder="name@example.com"
+                    placeholder=""
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition duration-200 text-sm"
@@ -315,3 +315,4 @@ export default function ForgotPasswordPage() {
     </div>
   );
 }
+
