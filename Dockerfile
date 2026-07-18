@@ -12,8 +12,7 @@ FROM eclipse-temurin:17-jre
 WORKDIR /app
 
 COPY --from=build /build/target/p2p-1.0-SNAPSHOT.jar app.jar
-COPY --from=build /build/target/dependency/*.jar ./lib/
 
-EXPOSE 8080
+EXPOSE 10000
 
-CMD ["java", "-cp", "app.jar:lib/*", "p2p.App"]
+CMD ["java", "-jar", "app.jar"]
